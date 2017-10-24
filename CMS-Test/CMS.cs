@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CMS_Test{
 
@@ -38,27 +36,34 @@ namespace CMS_Test{
             for (int x = 0; x < 32; x++) {
                 for (int y = 0; y < 32; y++) {
                     for (int z = 0; z < 32; z++) {
-                        
+
+                        //calculate the density on each corner of the cube-cell
                         for (int i = 0; i < 8; i++) {
                             v[i] = -Density(new Vector3(x, y, z) + vertices[i]);
                         }
 
+                        //foreach(edge in cube-cell)
                         for(int i = 0; i < 12; i++) {
+                            //if(edge intersects surface)
                             if(v[edges[i, 0]] < 0 != v[edges[i, 1]] < 0) {
+                                //calculate intersection point and normal
                                 e[i, 0] = Mix(vertices[edges[i, 0]], vertices[edges[i, 1]], -v[edges[i, 0]] / (v[edges[i, 1]] - v[edges[i, 0]])) + new Vector3(x, y, z);
                                 e[i, 1] = Normal(e[i, 0]);
                             }
                         }
                         
+                        //foreach(face in cell-cube)
                         for (int f = 0; f < 6; f++) {
 
+                            //calculate the marching square case of the face
                             int corners = 0;
                             for (int i = 0; i < 4; i++) {
                                 if (v[faces[f,0,i]] < 0)
                                     corners |= 1 << i;
                             }
 
-                            if(connections[corners, 0] == 2) {
+                            //TODO solve case ambiguity to make the mesh topological consistent
+                            if (connections[corners, 0] == 2) {
                                 Console.WriteLine("Special case");
 
                                 int edge1 = faces[f, 1, connections[corners, 1]];
@@ -70,18 +75,21 @@ namespace CMS_Test{
                             
                             }
                                 
-
+                            //foreach(line in case)
                             for (int i = 0; i < connections[corners, 0]; i++) {
 
+                                //get the two edges that the line connects
                                 int edge1 = faces[f,1,connections[corners, 1 + 2 * i]];
                                 int edge2 = faces[f,1,connections[corners, 2 + 2 * i]];
 
+                                //switch edge1 and edge2
                                 if (f != 0) {
-                                    int temp = edge1;
-                                    edge1 = edge2;
-                                    edge2 = temp;
+                                    edge1 = edge1 ^ edge2;
+                                    edge2 = edge1 ^ edge2;
+                                    edge1 = edge1 ^ edge2;
                                 }
 
+                                //add the connection between the two edges to the per cell connection list
                                 if (edgeconnection[edge1] == -1) {
                                     edgeconnection[edge1] = edge2;
                                 } else {
@@ -92,12 +100,15 @@ namespace CMS_Test{
 
                         }
 
+                        //foreach(edge in cell-cube)
                         for (int i = 0; i < 12; i++) {
+                            //if(edge has connection)
                             if (edgeconnection[i] != -1) {
                                 polygon.Clear();
                                 int r = i;
+                                //trace the polygon
                                 while (edgeconnection[r] != -1) {
-                                    //Vector3 pos = Mix(vertices[edges[r,0]], vertices[edges[r,1]], -v[edges[r,0]] / (v[edges[r,1]] - v[edges[r,0]])) + new Vector3(x, y, z);
+                                    //OLD CODE: Vector3 pos = Mix(vertices[edges[r,0]], vertices[edges[r,1]], -v[edges[r,0]] / (v[edges[r,1]] - v[edges[r,0]])) + new Vector3(x, y, z);
                                     
                                     polygon.Add(e[r, 0]);
                                     int newref = edgeconnection[r];
@@ -105,6 +116,7 @@ namespace CMS_Test{
                                     r = newref;
                                 }
 
+                                //triangulate polygon
                                 for (int j = 0; j < polygon.Count - 2; j++) {
 
                                     mesh.Add(polygon[0].X);
