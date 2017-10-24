@@ -9,10 +9,13 @@ namespace CMS_Test{
         private static FastNoise noise = new FastNoise();
 
         private static float Density(Vector3 p) {
+            //return SDF.Operations.Union(
+            //    SDF.Operations.Substraction(SDF.Primitives.Sphere(new Vector3(16, 16, 16), 10, p), SDF.Primitives.Sphere(new Vector3(18, 16, 8), 6, p)),
+            //    SDF.Primitives.Box(new Vector3(14, 22, 22), new Vector3(5.5f), p));
+            //return noise.GetNoise(p.X * 8, p.Y * 8, p.Z * 8);
             return SDF.Operations.Union(
-                SDF.Operations.Substraction(SDF.Primitives.Sphere(new Vector3(16, 16, 16), 10, p), SDF.Primitives.Sphere(new Vector3(18, 16, 8), 6, p)),
-                SDF.Primitives.Box(new Vector3(14, 22, 22), new Vector3(5.5f), p));
-            //return noise.GetNoise(p.X * 3, p.Y * 3, p.Z * 3);
+                SDF.Primitives.Torus(new Vector3(16, 16, 16), new Vector2(10, 4), p),
+                SDF.Primitives.Cylinder(new Vector3(16, 16, 16), new Vector2(8, 5.5f), p));
         }
 
         private static Vector3 Normal(Vector3 p) {
@@ -39,15 +42,15 @@ namespace CMS_Test{
 
                         //calculate the density on each corner of the cube-cell
                         for (int i = 0; i < 8; i++) {
-                            v[i] = -Density(new Vector3(x, y, z) + vertices[i]);
+                            v[i] = -Density(new Vector3(x, y, z) + Vertices[i]);
                         }
 
                         //foreach(edge in cube-cell)
                         for(int i = 0; i < 12; i++) {
                             //if(edge intersects surface)
-                            if(v[edges[i, 0]] < 0 != v[edges[i, 1]] < 0) {
+                            if(v[Edges[i, 0]] < 0 != v[Edges[i, 1]] < 0) {
                                 //calculate intersection point and normal
-                                e[i, 0] = Mix(vertices[edges[i, 0]], vertices[edges[i, 1]], -v[edges[i, 0]] / (v[edges[i, 1]] - v[edges[i, 0]])) + new Vector3(x, y, z);
+                                e[i, 0] = Mix(Vertices[Edges[i, 0]], Vertices[Edges[i, 1]], -v[Edges[i, 0]] / (v[Edges[i, 1]] - v[Edges[i, 0]])) + new Vector3(x, y, z);
                                 e[i, 1] = Normal(e[i, 0]);
                             }
                         }
@@ -58,29 +61,29 @@ namespace CMS_Test{
                             //calculate the marching square case of the face
                             int corners = 0;
                             for (int i = 0; i < 4; i++) {
-                                if (v[faces[f,0,i]] < 0)
+                                if (v[Faces[f,0,i]] < 0)
                                     corners |= 1 << i;
                             }
 
                             //TODO solve case ambiguity to make the mesh topological consistent
-                            if (connections[corners, 0] == 2) {
+                            if (Connections[corners, 0] == 2) {
                                 Console.WriteLine("Special case");
 
-                                int edge1 = faces[f, 1, connections[corners, 1]];
-                                int edge2 = faces[f, 1, connections[corners, 2]];
-                                int edge3 = faces[f, 1, connections[corners, 3]];
-                                int edge4 = faces[f, 1, connections[corners, 4]];
+                                int edge1 = Faces[f, 1, Connections[corners, 1]];
+                                int edge2 = Faces[f, 1, Connections[corners, 2]];
+                                int edge3 = Faces[f, 1, Connections[corners, 3]];
+                                int edge4 = Faces[f, 1, Connections[corners, 4]];
 
-                                Vector3 v1 = Vector3.Normalize(Vector3.Cross(facenormals[f], e[edge1, 1]));
+                                Vector3 v1 = Vector3.Normalize(Vector3.Cross(Facenormals[f], e[edge1, 1]));
                             
                             }
                                 
                             //foreach(line in case)
-                            for (int i = 0; i < connections[corners, 0]; i++) {
+                            for (int i = 0; i < Connections[corners, 0]; i++) {
 
                                 //get the two edges that the line connects
-                                int edge1 = faces[f,1,connections[corners, 1 + 2 * i]];
-                                int edge2 = faces[f,1,connections[corners, 2 + 2 * i]];
+                                int edge1 = Faces[f,1,Connections[corners, 1 + 2 * i]];
+                                int edge2 = Faces[f,1,Connections[corners, 2 + 2 * i]];
 
                                 //switch edge1 and edge2
                                 if (f != 0) {
@@ -146,7 +149,7 @@ namespace CMS_Test{
             return a * (1 - s) + b * s;
         }
 
-        private static readonly Vector3[] vertices = {
+        private static readonly Vector3[] Vertices = {
             new Vector3(0, 0, 0),
             new Vector3(0, 1, 0),
             new Vector3(1, 1, 0),
@@ -157,7 +160,7 @@ namespace CMS_Test{
             new Vector3(1, 0, 1),
         };
 
-        private static readonly int[,] connections = {
+        private static readonly int[,] Connections = {
 	        {0,-1,-1,-1,-1},
 	        {1, 0, 3,-1,-1},
 	        {1, 1, 0,-1,-1},
@@ -176,7 +179,7 @@ namespace CMS_Test{
 	        {0,-1,-1,-1,-1},
         };
 
-        private static readonly int[,,] faces = {
+        private static readonly int[,,] Faces = {
 	        {{ 0, 1, 2, 3 }, { 0,  1,  2,  3}},
 	        {{ 0, 1, 5, 4 }, { 0,  9,  4,  8}},
 	        {{ 5, 1, 2, 6 }, { 9,  1, 10,  5}},
@@ -185,7 +188,7 @@ namespace CMS_Test{
 	        {{ 4, 5, 6, 7 }, { 4,  5,  6,  7}}
         };
 
-        private static readonly Vector3[] facenormals = {
+        private static readonly Vector3[] Facenormals = {
             new Vector3( 0, 0,-1),
             new Vector3(-1, 0, 0),
             new Vector3( 0, 1, 0),
@@ -194,7 +197,7 @@ namespace CMS_Test{
             new Vector3( 0, 0, 1),
         };
 
-        private static readonly int[,] edges = {
+        private static readonly int[,] Edges = {
 	        {0,1},
 	        {1,2},
 	        {2,3},
