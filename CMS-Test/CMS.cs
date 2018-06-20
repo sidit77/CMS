@@ -1,21 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using CMS_Test.SDF;
 
 namespace CMS_Test{
 
-    class CMS{
+    static class CMS{
 
         private static FastNoise noise = new FastNoise();
-        
+
         private static readonly Func<Vector3, float> Density =
             //return SDF.Operations.Union(
             //    SDF.Operations.Substraction(SDF.Primitives.Sphere(new Vector3(16, 16, 16), 10, p), SDF.Primitives.Sphere(new Vector3(18, 16, 8), 6, p)),
             //    SDF.Primitives.Box(new Vector3(14, 22, 22), new Vector3(5.5f), p));
             //return noise.GetNoise(p.X * 8, p.Y * 8, p.Z * 8);
-            SDF.Operations.Union(
-                SDF.Primitives.Torus(new Vector3(16, 16, 16), new Vector2(10, 4)),
-                SDF.Primitives.Cylinder(new Vector3(16, 16, 16), new Vector2(8, 5.5f)));
+            //SDF.Operations.Union(
+            //    SDF.Primitives.Torus(new Vector3(16, 16, 16), new Vector2(10, 4)),
+            //    SDF.Primitives.Cylinder(new Vector3(16, 16, 16), new Vector2(8, 5.5f)));
+
+            Operations.Transform(Matrix4x4.CreateRotationZ(MathF.PI / 3),
+                Operations.Union(
+                    Primitives.Torus(new Vector2(10, 4)),
+                    Primitives.Cylinder(new Vector2(8, 5.5f))));
+        
             //return SDF.Primitives.Sphere(new Vector3(16, 16, 16), 10, p) - noise.GetNoise(p.X * 4, p.Y * 4, p.Z * 4) * 4;
             //return SDF.Primitives.Sphere(new Vector3(16), 10, p);
         
@@ -38,9 +45,9 @@ namespace CMS_Test{
             int[] edgeconnection = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
             Vector3[,] e = new Vector3[12,2];
             
-            for (int x = 0; x < 32; x++) {
-                for (int y = 0; y < 32; y++) {
-                    for (int z = 0; z < 32; z++) {
+            for (int x = -16; x < 16; x++) {
+                for (int y = -16; y < 16; y++) {
+                    for (int z = -16; z < 16; z++) {
 
                         //calculate the density on each corner of the cube-cell
                         for (int i = 0; i < 8; i++) {
@@ -70,14 +77,19 @@ namespace CMS_Test{
                             //TODO solve case ambiguity to make the mesh topological consistent
                             if (Connections[corners, 0] == 2) {
                                 Console.WriteLine("Special case");
-
+                                
+                                /**
                                 int edge1 = Faces[f, 1, Connections[corners, 1]];
                                 int edge2 = Faces[f, 1, Connections[corners, 2]];
                                 int edge3 = Faces[f, 1, Connections[corners, 3]];
-                                int edge4 = Faces[f, 1, Connections[corners, 4]];
 
                                 Vector3 v1 = Vector3.Normalize(Vector3.Cross(Facenormals[f], e[edge1, 1]));
-                            
+                                Vector3 v2 = Vector3.Normalize(Vector3.Cross(Facenormals[f], e[edge2, 1]));
+                                Vector3 v3 = Vector3.Normalize(Vector3.Cross(Facenormals[f], e[edge3, 1]));
+
+                                if (Vector3.Dot(v1, v2) < Vector3.Dot(v1, v3))
+                                    corners ^= 0b00001111;
+                                **/
                             }
                                 
                             //foreach(line in case)

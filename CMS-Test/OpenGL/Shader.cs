@@ -208,7 +208,7 @@ namespace CMS_Test.OpenGL {
         public static ShaderProgram FromFile(string path) {
             ShaderProgram program = new ShaderProgram();
 
-            using(XmlReader reader = XmlReader.Create(path, new XmlReaderSettings() { IgnoreComments = true, IgnoreWhitespace = true})) {
+            using(XmlReader reader = XmlReader.Create(Path.GetFullPath(path), new XmlReaderSettings() { IgnoreComments = true, IgnoreWhitespace = true})) {
                 while(reader.Read()) {
                     if(reader.NodeType == XmlNodeType.Element) {
                         int type = -1;
