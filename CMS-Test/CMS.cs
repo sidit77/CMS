@@ -7,16 +7,18 @@ namespace CMS_Test{
     class CMS{
 
         private static FastNoise noise = new FastNoise();
-
-        private static float Density(Vector3 p) {
+        
+        private static readonly Func<Vector3, float> Density =
             //return SDF.Operations.Union(
             //    SDF.Operations.Substraction(SDF.Primitives.Sphere(new Vector3(16, 16, 16), 10, p), SDF.Primitives.Sphere(new Vector3(18, 16, 8), 6, p)),
             //    SDF.Primitives.Box(new Vector3(14, 22, 22), new Vector3(5.5f), p));
             //return noise.GetNoise(p.X * 8, p.Y * 8, p.Z * 8);
-            return SDF.Operations.Union(
-                SDF.Primitives.Torus(new Vector3(16, 16, 16), new Vector2(10, 4), p),
-                SDF.Primitives.Cylinder(new Vector3(16, 16, 16), new Vector2(8, 5.5f), p));
-        }
+            SDF.Operations.Union(
+                SDF.Primitives.Torus(new Vector3(16, 16, 16), new Vector2(10, 4)),
+                SDF.Primitives.Cylinder(new Vector3(16, 16, 16), new Vector2(8, 5.5f)));
+            //return SDF.Primitives.Sphere(new Vector3(16, 16, 16), 10, p) - noise.GetNoise(p.X * 4, p.Y * 4, p.Z * 4) * 4;
+            //return SDF.Primitives.Sphere(new Vector3(16), 10, p);
+        
 
         private static Vector3 Normal(Vector3 p) {
             const float H = 0.001f;
